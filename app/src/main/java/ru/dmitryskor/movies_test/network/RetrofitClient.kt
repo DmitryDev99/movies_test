@@ -1,6 +1,7 @@
 package ru.dmitryskor.movies_test.network
 
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 /**
  * Created by Dmitry Skorodumov on 11.02.2023
@@ -12,7 +13,7 @@ object RetrofitClient {
     fun getClient(baseUrl: String): Retrofit {
         if (retrofit == null) {
             retrofit = Retrofit.Builder()
-//                .addConverterFactory(GsonCon)
+                .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl(baseUrl)
                 .build()
         }

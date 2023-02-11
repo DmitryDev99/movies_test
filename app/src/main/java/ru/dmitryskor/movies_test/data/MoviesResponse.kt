@@ -10,10 +10,10 @@ data class MoviesResponse(
     val status: String?,
     val copyright: String?,
     @SerializedName("has_more")
-    val hasMore: Boolean,
+    val hasMore: Boolean = false,
     @SerializedName("num_results")
     val numResults: Int,
-    val results: List<Movie?>?
+    val results: List<Movie>?
 )
 
 data class Movie(

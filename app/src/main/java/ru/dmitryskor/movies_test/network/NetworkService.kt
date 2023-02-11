@@ -13,9 +13,15 @@ object NetworkService {
 
     private const val INCORRECT_API_KEY = 401
 
-    fun asyncGet(url: String, methodName: String, onSuccess: (JsonObject?) -> Unit, onError: (Throwable) -> Unit) {
-        RetrofitClient.getClient(url).create(RetrofitService::class.java)
-            .getCall(methodName, BuildConfig.MOVIES_API_KEY).enqueue(getCallBackResponse(onSuccess, onError))
+    suspend fun asyncGet(url: String, methodName: String, params: Map<String, String>): JsonObject {
+        return RetrofitClient.getClient(url).create(NetworkApi::class.java)
+            .get(methodName, BuildConfig.MOVIES_API_KEY, params)
+    }
+
+
+    fun asyncGet(url: String, methodName: String, params: Map<String, String>, onSuccess: (JsonObject?) -> Unit, onError: (Throwable) -> Unit) {
+        RetrofitClient.getClient(url).create(NetworkApi::class.java)
+            .getCall(methodName, BuildConfig.MOVIES_API_KEY, params).enqueue(getCallBackResponse(onSuccess, onError))
     }
 
     private fun <T> getCallBackResponse(onSuccess: (T?) -> Unit, onError: (Throwable) -> Unit): Callback<T> {

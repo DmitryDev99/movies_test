@@ -1,16 +1,12 @@
 package ru.dmitryskor.movies_test
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import retrofit2.Call
-import retrofit2.Retrofit
-import ru.dmitryskor.movies_test.data.MoviesResponse
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import ru.dmitryskor.movies_test.databinding.ActivityMainBinding
-import ru.dmitryskor.movies_test.network.Common
-import ru.dmitryskor.movies_test.network.RetrofitClient
-import ru.dmitryskor.movies_test.network.RetrofitService
-import retrofit2.Callback
-import retrofit2.Response
+import ru.dmitryskor.movies_test.network.MoviesClient
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,24 +18,29 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        stateLoading()
         getAllMovieList()
     }
 
     private fun getAllMovieList() {
-        Common.retrofitService.getMovies().enqueue(object : Callback<MoviesResponse> {
-            override fun onResponse(
-                call: Call<MoviesResponse>,
-                response: Response<MoviesResponse>
-            ) {
-                call
-                response
-            }
+        lifecycleScope.launch {
+            MoviesClient.getMovies({
+                it
+            }, {
+                setStateErrorText(it.message)
+            })
+        }
+    }
 
-            override fun onFailure(call: Call<MoviesResponse>, t: Throwable) {
-                t
-            }
+    private fun stateLoading() {
+        binding.errorText.isVisible = false
+        binding.progressBar.isVisible = true
+    }
 
-        })
+    private fun setStateErrorText(errorText: String?) {
+        binding.progressBar.isVisible = false
+        binding.errorText.isVisible = true
+        binding.errorText.text = errorText
     }
 
     override fun onDestroy() {

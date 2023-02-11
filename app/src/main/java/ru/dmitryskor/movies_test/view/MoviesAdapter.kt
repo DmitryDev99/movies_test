@@ -18,7 +18,7 @@ class MoviesAdapter : PagingDataAdapter<Movie, MovieVH>(MovieDiffCallBack()) {
     }
 
     override fun onBindViewHolder(holder: MovieVH, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), position)
     }
 }
 
@@ -40,7 +40,7 @@ class MovieVH(
         false
     )
 ) : RecyclerView.ViewHolder(binding.root) {
-    fun bind(movie: Movie?) {
-        binding.nameMovie.text = movie?.displayTitle
+    fun bind(movie: Movie?, position: Int) {
+        binding.nameMovie.text = position.toString() + "    " + movie?.displayTitle
     }
 }

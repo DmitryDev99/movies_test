@@ -19,26 +19,26 @@ sealed class MoviesUiState {
     object Empty: MoviesUiState()
     object LoadingState: MoviesUiState()
     data class ErrorState(val errorText: String?): MoviesUiState()
-    data class LoadMovies(val list: List<Movie?>): MoviesUiState()
+    data class LoadMovies(val list: PagingData<Movie>): MoviesUiState()
 }
 
 class MoviesViewModel(
     private val coroutineScope: CloseableCoroutineScope = CloseableCoroutineScope()
 ) : ViewModel(coroutineScope) {
 
+    init {
+        coroutineScope.launch {
+            MoviesDSImpl().getMovies(MoviesClient)
+                .map { pagingData ->
+                    pagingData.map {
+                        it
+                    }
+                }.cachedIn(coroutineScope).collectLatest {
+                    _uiState.emit(MoviesUiState.LoadMovies(it))
+                }
+        }
+    }
+
     private val _uiState = MutableStateFlow<MoviesUiState>(MoviesUiState.Empty)
     val uiState: StateFlow<MoviesUiState> = _uiState.asStateFlow()
-
-    init {
-        getMovies()
-    }
-
-    fun getMovies(): Flow<PagingData<Movie>> {
-        return MoviesDSImpl().getMovies(MoviesClient)
-            .map { pagingData ->
-                pagingData.map {
-                    it
-                }
-            }.cachedIn(coroutineScope)
-    }
 }

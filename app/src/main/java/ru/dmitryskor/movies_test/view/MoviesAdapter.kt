@@ -19,6 +19,18 @@ import ru.dmitryskor.movies_test.databinding.MovieItemBinding
  */
 class MoviesAdapter : PagingDataAdapter<MovieUI, MovieVH>(MovieDiffCallBack()) {
 
+    companion object {
+        const val ANY_ITEM = 0
+        const val LAST_ITEM = 1
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return when (position) {
+            itemCount -> LAST_ITEM
+            else -> ANY_ITEM
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieVH {
         return MovieVH(parent)
     }

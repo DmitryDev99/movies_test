@@ -29,23 +29,29 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val spanColumn = 3
         adapterMovies.addLoadStateListener { state ->
-            if (state.refresh is LoadState.Error) {
-                errorState(this.getString(R.string.error_default))
+            when (state.refresh) {
+                is LoadState.Error -> errorState(this.getString(R.string.error_default))
+                is LoadState.Loading -> loadingState()
+                else -> idleState()
             }
         }
-        binding.moviesRecyclerView.adapter = adapterMovies.withLoadStateHeaderAndFooter(
-            MoviesLoaderAdapter(), MoviesLoaderAdapter()
-        )
-        binding.moviesRecyclerView.layoutManager = GridLayoutManager(this, 3)
+        binding.moviesRecyclerView.adapter =
+            adapterMovies.withLoadStateFooter(MoviesLoaderAdapter())
+        binding.moviesRecyclerView.layoutManager = GridLayoutManager(this, spanColumn).apply {
+            spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (adapterMovies.getItemViewType(position) != MoviesAdapter.LAST_ITEM) 1 else spanColumn
+                }
+            }
+        }
         val viewModel: MoviesViewModel by viewModels()
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect {
                     when (it) {
-                        is MoviesUiState.Empty -> emptyState()
-                        is MoviesUiState.LoadingState -> loadingState()
-                        is MoviesUiState.ErrorState -> errorState(it.errorText)
+                        is MoviesUiState.Idle -> idleState()
                         is MoviesUiState.LoadMovies -> loadMovies(it.list)
                     }
                 }
@@ -53,16 +59,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun emptyState() {
-        binding.text.isVisible = true
-        binding.text.text = "List movies empty"
-        binding.progressBar.isVisible = false
-        binding.moviesRecyclerView.isVisible = false
-    }
     private fun loadingState() {
         binding.text.isVisible = false
         binding.progressBar.isVisible = true
         binding.moviesRecyclerView.isVisible = false
+    }
+
+    private fun idleState() {
+        binding.progressBar.isVisible = false
+        binding.text.isVisible = false
+        binding.moviesRecyclerView.isVisible = true
     }
 
     private fun errorState(errorText: String?) {

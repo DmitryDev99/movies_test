@@ -18,7 +18,7 @@ class MoviesDSImpl {
     fun getMovies(moviesClient: MoviesClient): Flow<PagingData<Movie>> {
         return Pager(
             PagingConfig(
-                NETWORK_PAGE_SIZE,
+                pageSize = NETWORK_PAGE_SIZE
             ),
             pagingSourceFactory = { MoviesPagingSource(moviesClient) }
         ).flow

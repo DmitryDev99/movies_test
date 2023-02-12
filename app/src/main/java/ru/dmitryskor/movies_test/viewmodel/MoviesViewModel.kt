@@ -7,6 +7,7 @@ import androidx.paging.map
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.dmitryskor.movies_test.data.Movie
+import ru.dmitryskor.movies_test.data.MovieUI
 import ru.dmitryskor.movies_test.network.MoviesClient
 import ru.dmitryskor.movies_test.repository.MoviesDSImpl
 
@@ -19,7 +20,7 @@ sealed class MoviesUiState {
     object Empty: MoviesUiState()
     object LoadingState: MoviesUiState()
     data class ErrorState(val errorText: String?): MoviesUiState()
-    data class LoadMovies(val list: PagingData<Movie>): MoviesUiState()
+    data class LoadMovies(val list: PagingData<MovieUI>): MoviesUiState()
 }
 
 class MoviesViewModel(
@@ -31,7 +32,12 @@ class MoviesViewModel(
             MoviesDSImpl().getMovies(MoviesClient)
                 .map { pagingData ->
                     pagingData.map {
-                        it
+                        MovieUI(
+                            it.displayTitle,
+                            it.mpaaRating,
+                            it.criticsPick == 1,
+                            it.multimedia?.src
+                        )
                     }
                 }.cachedIn(coroutineScope).collectLatest {
                     _uiState.emit(MoviesUiState.LoadMovies(it))
@@ -39,6 +45,6 @@ class MoviesViewModel(
         }
     }
 
-    private val _uiState = MutableStateFlow<MoviesUiState>(MoviesUiState.Empty)
+    private val _uiState = MutableStateFlow<MoviesUiState>(MoviesUiState.LoadingState)
     val uiState: StateFlow<MoviesUiState> = _uiState.asStateFlow()
 }

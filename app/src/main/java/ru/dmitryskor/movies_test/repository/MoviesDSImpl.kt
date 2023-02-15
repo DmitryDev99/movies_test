@@ -15,12 +15,12 @@ const val NETWORK_PAGE_SIZE = 20
 
 class MoviesDSImpl {
 
-    fun getMovies(moviesClient: MoviesClient): Flow<PagingData<Movie>> {
+    fun getMovies(moviesClient: MoviesClient, filterMovies: FilterMovies): Flow<PagingData<Movie>> {
         return Pager(
             PagingConfig(
                 pageSize = NETWORK_PAGE_SIZE
             ),
-            pagingSourceFactory = { MoviesPagingSource(moviesClient) }
+            pagingSourceFactory = { MoviesPagingSource(moviesClient, filterMovies) }
         ).flow
     }
 

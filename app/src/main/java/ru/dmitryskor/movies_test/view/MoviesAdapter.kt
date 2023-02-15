@@ -3,6 +3,7 @@ package ru.dmitryskor.movies_test.view
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -61,6 +62,7 @@ class MovieVH(
     fun bind(movie: MovieUI?) {
         binding.nameMovie.text = movie?.nameMovie
         if (!movie?.mpaaRating.isNullOrEmpty()) {
+            binding.textRating.isVisible = true
             val (color, colorText) = if (movie?.criticsPick == true) {
                 Pair(Color.GREEN, Color.BLACK)
             } else {
@@ -69,6 +71,8 @@ class MovieVH(
             binding.textRating.setBackgroundColor(color)
             binding.textRating.setTextColor(colorText)
             binding.textRating.text = movie?.mpaaRating
+        } else {
+            binding.textRating.isVisible = false
         }
         val requestOption = RequestOptions().transform(CenterCrop(), RoundedCorners(12))
         Glide.with(binding.root.context)

@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import ru.dmitryskor.movies_test.R
 import ru.dmitryskor.movies_test.data.MovieUI
 import ru.dmitryskor.movies_test.databinding.ActivityMainBinding
+import ru.dmitryskor.movies_test.repository.FilterMovies
 import ru.dmitryskor.movies_test.viewmodel.MoviesUiState
 import ru.dmitryskor.movies_test.viewmodel.MoviesViewModel
 
@@ -24,11 +25,13 @@ class MainActivity : AppCompatActivity() {
     private val adapterMovies by lazy(LazyThreadSafetyMode.NONE) {
         MoviesAdapter()
     }
+    private val viewModel: MoviesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        inflateMainMenu()
         val spanColumn = 3
         adapterMovies.addLoadStateListener { state ->
             when (state.refresh) {
@@ -46,7 +49,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        val viewModel: MoviesViewModel by viewModels()
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect {
@@ -83,6 +85,17 @@ class MainActivity : AppCompatActivity() {
         binding.text.isVisible = false
         binding.moviesRecyclerView.isVisible = true
         adapterMovies.submitData(lifecycle, list)
+    }
+
+    private fun inflateMainMenu() {
+        binding.toolbar.inflateMenu(R.menu.main_menu)
+        binding.toolbar.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.allMovies -> viewModel.changeUserFilter(FilterMovies.ALL)
+                R.id.byPicks -> viewModel.changeUserFilter(FilterMovies.PICKS)
+            }
+            return@setOnMenuItemClickListener true
+        }
     }
 
     override fun onDestroy() {

@@ -12,7 +12,8 @@ import ru.dmitryskor.movies_test.network.MoviesClient
 private const val STARTING_PAGE_INDEX = 0
 
 class MoviesPagingSource(
-    private val service: MoviesClient
+    private val service: MoviesClient,
+    private val filterMovies: FilterMovies
 ) : PagingSource<Int, Movie>() {
 
     override fun getRefreshKey(state: PagingState<Int, Movie>): Int? {
@@ -25,7 +26,7 @@ class MoviesPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Movie> {
         val pageIndex = params.key ?: STARTING_PAGE_INDEX
         return try {
-            val response = service.getMovies(pageIndex)
+            val response = service.getMovies(pageIndex, filterMovies)
             LoadResult.Page(
                 data = response.results ?: emptyList(),
                 prevKey = if (pageIndex == STARTING_PAGE_INDEX) null else pageIndex,

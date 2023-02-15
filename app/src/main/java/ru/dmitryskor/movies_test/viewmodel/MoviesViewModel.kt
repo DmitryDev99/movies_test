@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.dmitryskor.movies_test.data.MovieUI
 import ru.dmitryskor.movies_test.network.MoviesClient
+import ru.dmitryskor.movies_test.repository.FilterMovies
 import ru.dmitryskor.movies_test.repository.MoviesDSImpl
 
 /**
@@ -26,22 +28,40 @@ class MoviesViewModel(
 
     init {
         coroutineScope.launch {
-            MoviesDSImpl().getMovies(MoviesClient)
-                .map { pagingData ->
-                    pagingData.map {
-                        MovieUI(
-                            it.displayTitle,
-                            it.mpaaRating,
-                            it.criticsPick == 1,
-                            it.multimedia?.src
-                        )
-                    }
-                }.cachedIn(coroutineScope).collectLatest {
-                    _uiState.emit(MoviesUiState.LoadMovies(it))
-                }
+            getMovies()
         }
     }
 
+
+
+    private val userFilter = MutableStateFlow(FilterMovies.ALL)
+
     private val _uiState = MutableStateFlow<MoviesUiState>(MoviesUiState.Idle)
     val uiState: StateFlow<MoviesUiState> = _uiState.asStateFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun getMovies() {
+        userFilter.flatMapLatest {
+                filter ->
+            MoviesDSImpl().getMovies(MoviesClient, filter).mapLatest { paging ->
+                paging.map {
+                    MovieUI(
+                        it.displayTitle,
+                        it.mpaaRating,
+                        it.criticsPick == 1,
+                        it.multimedia?.src
+                    )
+                }
+            }.cachedIn(coroutineScope)
+        }.collectLatest {
+            _uiState.emit(MoviesUiState.LoadMovies(it))
+        }
+    }
+
+    fun changeUserFilter(filterMovies: FilterMovies) {
+        coroutineScope.launch {
+            userFilter.emit(filterMovies)
+        }
+    }
+
 }

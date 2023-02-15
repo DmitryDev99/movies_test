@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">movies_test</string>
     <string name="error_default">Error!</string>
+    <string name="all_movies">All movies</string>
+    <string name="by_picks">By picks</string>
 </resources>
